@@ -5,7 +5,7 @@ let test2, test
 function setup() {
     createCanvas(400, 500)
     angleMode(DEGREES)
-   test2 =  new Eyeball(width -100, 100, 100, 20, [50, 100, 255])
+   test2 =  new Eyeball(width -100, 200, 200, 70, [50, 100, 255])
    test = new Eyeball(width / 4, 100, 100, 20, [50, 100, 255])
 }
 
@@ -27,7 +27,7 @@ function draw() {
     test.drawPupil();
     test.drawUpperLid();
     test.drawLowerLid();
-    test.drawEyeLashes(20);
+    test.drawEyeLashes();
 
 
    
@@ -41,7 +41,7 @@ function draw() {
     test2.drawPupil();
     test2.drawUpperLid();
     test2.drawLowerLid();
-    test2.drawEyeLashes(10);
+    test2.drawEyeLashes(30);
 
     // translate(width / 2, height / 2)
 
@@ -205,7 +205,7 @@ class Eyeball {
             fifthX: this.x + this.rW,
             fifthY: this.y,
             blinkX: this.x,
-            blinkY: this.y + (this.h * (-10 / 20))
+            blinkY: this.y + (this.h * (-10 / 20)) -10
 
         }
 
@@ -221,7 +221,7 @@ class Eyeball {
             fifthX: this.x + this.rW,
             fifthY: this.y,
             blinkX: this.x,
-            blinkY: this.y - (this.h * (-10 / 20))
+            blinkY: this.y - (this.h * (-10 / 20)) +10
 
         }
     }
@@ -308,7 +308,7 @@ class Eyeball {
 
     }
 
-    drawEyeLashes(lashDensity) {
+    drawEyeLashes(lashDensity=20) {
         var steps = lashDensity;
         for (var i = 0; i <= steps; i++) {
             var t = i / steps;
@@ -356,20 +356,35 @@ class Eyeball {
     }
 
     followMouse() {
-        this.iris.x = this.pupil.x = map(mouseX, 0,width, this.x-10,this.x+10 );
-        this.iris.y = this.pupil.y = map(mouseY, 0,height, this.y-14,this.y+14 );
+        // Maps iris to x y positions with leeway 
+        this.iris.x =  map(mouseX, 0,width, this.x-(this.w/7),this.x+(this.w/20) );
+        this.iris.y = map(mouseY, 0,height, this.y-(this.h/2),this.y+(this.h/2) );
+
+        // Map pupil x, y to iris x y with leeway 
+        this.pupil.x = map(mouseX, 0,width, this.iris.x-(this.iris.x/29) ,this.iris.x + (this.iris.x/1600));
+
+        this.pupil.y = map(mouseY, 0,height, this.iris.y-1,this.iris.y +1 );
 
 
-        if (this.iris.y + this.iris.w/2 > this.y+this.h && this.iris.w > 9 && this.iris.y > this.y+ 13 ) {
-            this.iris.w -= 10
-        } else if (  this.iris.w < this.w * (13 / 35)) {
-            this.iris.w+= .8
+        // 1. if the the lower part of the iris circle is greater than the position of the white of the eye's lower position 
+        //2. the iris width is greater than 0
+        if (this.iris.y + this.iris.w > this.whiteOfEye.y+this.whiteOfEye.h  && this.iris.w*.99 + this.iris.y >=  this.whiteOfEye.y+this.whiteOfEye.h ) {
+            this.iris.w *= .99
+         } 
+        // 1 . if the iris width is less than the starting width
+        //2 and if the lower portion of the iris is less than the lower portion of the white of the eye
+        // 3. and the y of the iris is greater than the y primary y
+         else if ( this.iris.w < this.w * (13 / 35) && this.iris.y + this.iris.w/2 < this.whiteOfEye.y + this.whiteOfEye.h/2 && this.iris.y > this.y) {
+            this.iris.w/= .99
         }
+        
+        if (this.iris.y - this.iris.w < this.whiteOfEye.y- this.whiteOfEye.h && this.iris.w >= 0 && this.iris.y < this.y*1.1 ) {
+            this.iris.w *= .99
+        } 
 
-        if (this.iris.y - this.iris.w/2 < this.y-this.h && this.iris.w > 9 && this.iris.y < this.y- 13 ) {
-            this.iris.w -= 10
-        } else if (  this.iris.w < this.w * (13 / 35)) {
-            this.iris.w+= .5
+        
+        else if ( this.iris.w < this.w * (13 / 35) && this.iris.y - this.iris.w/2 > this.y - this.h && this.iris.y < this.y) {
+            this.iris.w/= .99
         }
     }
 
